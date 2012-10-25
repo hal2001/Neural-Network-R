@@ -104,8 +104,44 @@ gradFunction <- function(nn_params,
                           X = X, y = y, lambda = lambda)$grad;
   return(grad);
 }
-## =============== predict ===============
-predict <- function(Theta1, Theta2, X) {
+#################### end of utility functions ####################
+
+## ================ train nerual network ===============
+nnet_train <- function(X, y, hidden_layer_size = 25,
+                 lambda = 1, maxit = 50) {
+  m <- nrow(X);
+  input_layer_size <- ncol(X);
+  num_labels <- length(levels(factor(y)));
+  # ================ Initializing Pameters ================
+  initial_Theta1 <- randInitializeWeights(input_layer_size, hidden_layer_size);
+  initial_Theta2 <- randInitializeWeights(hidden_layer_size, num_labels);
+  initial_nn_params = c(c(initial_Theta1), c(initial_Theta2));
+
+  # =================== Training NN ===================;
+  train_results <- optim(par = initial_nn_params,
+                       fn = costFunction,
+                       input_layer_size = input_layer_size,
+                       hidden_layer_size = hidden_layer_size,
+                       num_labels = num_labels,
+                       X = X, y = y, lambda = lambda,
+                       gr = gradFunction,
+                       method = "L-BFGS-B",
+                       control = list(maxit = maxit, trace = TRUE, REPORT = 1));
+  nn_params <- train_results$par;
+  Theta1 <- matrix(nn_params[1:(hidden_layer_size*(input_layer_size+1))],
+                   hidden_layer_size, (input_layer_size + 1));
+  Theta2 <- matrix(nn_params[-1:-(hidden_layer_size*(input_layer_size+1))],
+                   num_labels, (hidden_layer_size + 1));
+  ## ================= show accuracy =================
+  pred = nnet_predict(Theta1, Theta2, X);
+  cat("\nTraining Set Accuracy: ", sum(pred == y)/length(pred)*100,
+      "%\n", sep = "");
+  ## =============== return thetas ===============
+  return(list(Theta1 = Theta1, Theta2 = Theta2));
+}
+
+## =============== nerual network predict ===============
+nnet_predict <- function(Theta1, Theta2, X) {
   m <- nrow(X);
   num_labels <- nrow(Theta2);
   p = rep(0, m);
@@ -115,40 +151,3 @@ predict <- function(Theta1, Theta2, X) {
   p = apply(h2, 1, which.max);
   return(p);
 }
-#################### end of functions ####################
-
-## =========== Loading Data =============
-require(R.matlab);
-test_data <- readMat('nnetData.mat');
-X <- test_data$X;
-y <- test_data$y;
-m <- nrow(X);
-input_layer_size <- ncol(X);
-num_labels <- length(levels(factor(y)));
-hidden_layer_size <- 25;
-
-## ================ Initializing Pameters ================
-initial_Theta1 <- randInitializeWeights(input_layer_size, hidden_layer_size);
-initial_Theta2 <- randInitializeWeights(hidden_layer_size, num_labels);
-initial_nn_params = c(c(initial_Theta1), c(initial_Theta2));
-
-## =================== Training NN ===================
-lambda = 1;
-train_results <- optim(par = initial_nn_params,
-                       fn = costFunction,
-                       input_layer_size = input_layer_size,
-                       hidden_layer_size = hidden_layer_size,
-                       num_labels = num_labels,
-                       X = X, y = y, lambda = lambda,
-                       gr = gradFunction,
-                       method = "L-BFGS-B",
-                       control = list(maxit = 50));
-nn_params <- train_results$par;
-Theta1 <- matrix(nn_params[1:(hidden_layer_size*(input_layer_size+1))],
-                 hidden_layer_size, (input_layer_size + 1));
-Theta2 <- matrix(nn_params[-1:-(hidden_layer_size*(input_layer_size+1))],
-                 num_labels, (hidden_layer_size + 1));
-
-## ================= Implement Predict =================
-pred = predict(Theta1, Theta2, X);
-cat("\nTraining Set Accuracy: ", sum(pred == y)/length(pred)*100, "%\n");
