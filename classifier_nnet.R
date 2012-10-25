@@ -151,3 +151,5 @@ nnet_predict <- function(Theta1, Theta2, X) {
   p = apply(h2, 1, which.max);
   return(p);
 }
+
+################ example ###############
