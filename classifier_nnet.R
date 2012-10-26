@@ -142,8 +142,11 @@ nnet_train <- function(X, y, hidden_layer_size = 25,
 
 ## =============== nerual network predict ===============
 nnet_predict <- function(Theta1, Theta2, X) {
-  m <- nrow(X);
   num_labels <- nrow(Theta2);
+  m <- nrow(X);
+  if (is.null(m)) {
+    m <- 1; X <- t(X);
+  }
   p = rep(0, m);
 
   h1 <- sigmoid(cbind(rep(1, m), X) %*% t(Theta1));
@@ -152,4 +155,10 @@ nnet_predict <- function(Theta1, Theta2, X) {
   return(p);
 }
 
-################ example ###############
+##################### example ####################
+X <- rbind(matrix(rnorm(100, 10, 1), 20, 5),
+           matrix(rnorm(200, 5, 2), 40, 5),
+           matrix(rnorm(150, 1, 0.1), 30, 5));
+y <- c(rep(3, 20), rep(1, 40), rep(2, 30));
+test <- nnet_train(X[-1, ], y[-1], hidden_layer_size = 25,
+                   lambda = 1, maxit = 50);
