@@ -1,6 +1,6 @@
-Machine_Learning
+nnet
 ------------------------------------------------------------------------
-These are machine learning solvers in R. (A special thanks to Andrew Ng)
+A neural network algorithm in R.
 _______________________________________________________________________
 Files:
 
